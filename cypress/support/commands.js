@@ -26,9 +26,37 @@
 
 import './actions/login.cy'
 
-Cypress.Commands.add('verificaToast', (mensagem)=>{
+Cypress.Commands.add('verificaToast', (mensagem) => {
     cy.get('.toast')
         .should('be.visible')
         .find('div[role="status"]')
         .should('have.text', mensagem)
-  }) 
+})
+
+Cypress.Commands.add('criarAgendamentosApi', (funcionario, agendamentos) => {
+    cy.deleteMany(
+        { matricula: funcionario.matricula },
+        { collection: 'agendamentos' }
+    )
+
+    agendamentos.forEach((a) => {
+        cy.request({
+            method: 'POST',
+            url: `${Cypress.env('baseApi')}/api/agendamentos`,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer 3a8a9b8fae87baf503e7c5fe5b97fd72'
+            },
+            body: {
+                nomeCliente: a.usuario.nome,
+                emailCliente: a.usuario.email,
+                data: a.data,
+                hora: a.hora,
+                matricula: funcionario.matricula,
+                codigoServico: a.servico.codigo
+            }
+        }).then((response) => {
+            expect(response.status).to.eq(201)
+        })
+    })
+})
